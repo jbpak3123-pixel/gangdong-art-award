@@ -274,6 +274,7 @@
   };
 
   function slugify(name){ return encodeURIComponent(name.trim()).replace(/%/g,'_'); }
+  let confirmBackdropEl = null;
   function showToast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),1700); }
   function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
@@ -600,6 +601,7 @@
 
   function proceedAfterConfirm(){
     if(state._confirmTimer){ clearTimeout(state._confirmTimer); state._confirmTimer = null; }
+    if(confirmBackdropEl){ confirmBackdropEl.remove(); confirmBackdropEl = null; }
     if(!state.confirmOverlay) return;
     const wasLast = state.confirmOverlay.isLast;
     state.confirmOverlay = null;
@@ -627,6 +629,7 @@
         <button class="kdm-btn small" id="kdm-confirm-continue" style="margin-top:20px;">${isLast ? '완료 화면 보기' : '지금 다음 후보로'}</button>
       </div>`;
     document.body.appendChild(backdrop);
+    confirmBackdropEl = backdrop;
     backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) proceedAfterConfirm(); });
     document.getElementById('kdm-confirm-continue').addEventListener('click', proceedAfterConfirm);
   }
