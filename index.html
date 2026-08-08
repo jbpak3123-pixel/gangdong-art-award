@@ -1,5 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F2D46">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>강동미술인상 심사평가</title>
+<meta name="description" content="강동미술인상 후보자 심사위원 평가표">
+<meta property="og:title" content="강동미술인상 심사평가">
+<meta property="og:description" content="배점기준에 따라 후보자를 채점하는 심사위원용 평가표입니다.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23FAF7F1' stroke='%239A2B2B' stroke-width='6'/%3E%3Ctext x='50' y='62' font-size='40' text-anchor='middle' fill='%239A2B2B'%3E美%3C/text%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+  html,body{margin:0;padding:0;background:#FAF7F1;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;}
+  button,a{touch-action:manipulation;}
 
   :root{
     --paper:#FAF7F1;
@@ -18,7 +36,7 @@
     font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;}
-  #kdm-root{background:var(--paper);color:var(--ink);min-height:100%;padding-bottom:84px;}
+  #kdm-root{background:var(--paper);color:var(--ink);min-height:100vh;min-height:100dvh;padding-bottom:84px;}
   .kdm-wrap{max-width:480px;margin:0 auto;padding:0 16px;}
   h1,h2,h3{font-family:'Noto Serif KR',serif;margin:0;}
   .serif{font-family:'Noto Serif KR',serif;}
@@ -86,15 +104,19 @@
   .kdm-cat-max{font-size:12px;color:var(--ink-soft);}
   .kdm-cat-desc{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:4px;}
   .kdm-cat-grades{font-size:10.5px;color:var(--gold);font-weight:600;margin-bottom:10px;letter-spacing:.1px;}
+  .kdm-graderow{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+  .kdm-gradechip{flex:1 1 auto;min-width:64px;text-align:center;padding:7px 6px;border-radius:8px;border:1px solid var(--line);background:var(--paper-alt);font-size:11px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit;}
+  .kdm-gradechip:active{background:var(--line);}
+  .kdm-gradechip .r{display:block;font-size:9.5px;color:var(--ink-soft);opacity:.75;margin-top:1px;}
   .kdm-cat-controls{display:flex;align-items:center;gap:10px;}
-  .kdm-stepbtn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--paper-alt);font-size:18px;color:var(--navy);cursor:pointer;font-weight:700;flex:0 0 auto;}
+  .kdm-stepbtn{width:44px;height:44px;border-radius:9px;border:1px solid var(--line);background:var(--paper-alt);font-size:20px;color:var(--navy);cursor:pointer;font-weight:700;flex:0 0 auto;}
   .kdm-stepbtn:active{background:var(--line);}
   .kdm-cat-num{flex:1;text-align:center;font-size:20px;font-weight:700;border:1px solid var(--line);border-radius:9px;padding:8px 4px;font-family:'Noto Serif KR',serif;color:var(--ink);}
   .kdm-fillbar{height:5px;border-radius:3px;background:var(--paper-alt);margin-top:10px;overflow:hidden;}
   .kdm-fillbar .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--seal));border-radius:3px;transition:width .15s;}
 
   .kdm-note-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin:14px 0 6px;}
-  textarea.kdm-textarea{min-height:78px;resize:vertical;font-size:13.5px;}
+  textarea.kdm-textarea{min-height:78px;resize:vertical;font-size:16px;}
   .kdm-savebar{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--paper) 30%);padding:14px 0 4px;}
 
   .kdm-statusrow{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;}
@@ -135,6 +157,8 @@
   .kdm-formfield{margin-bottom:12px;}
   .kdm-formfield label{display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px;}
 </style>
+</head>
+<body>
 
 <div id="kdm-root"></div>
 <div id="kdm-toast" class="kdm-toast"></div>
@@ -236,10 +260,10 @@
     const gMin = Math.round(max*0.7);
     const oMin = Math.round(max*0.4);
     return [
-      {label:'매우우수', range:`${vMin}~${max}`},
-      {label:'우수', range:`${gMin}~${vMin-1}`},
-      {label:'보통', range:`${oMin}~${gMin-1}`},
-      {label:'미흡', range:`0~${oMin-1}`},
+      {label:'매우우수', min:vMin, max:max, range:`${vMin}~${max}`},
+      {label:'우수', min:gMin, max:vMin-1, range:`${gMin}~${vMin-1}`},
+      {label:'보통', min:oMin, max:gMin-1, range:`${oMin}~${gMin-1}`},
+      {label:'미흡', min:0, max:oMin-1, range:`0~${oMin-1}`},
     ];
   }
   function gradeLine(max){
@@ -350,9 +374,9 @@
         <h2>강동미술인상 심사평가</h2>
         <p class="desc">배점기준에 따라 후보자를 채점합니다.<br/>성명을 입력하고 시작하세요.</p>
         <div class="kdm-field"><label>심사위원 성명</label>
-          <input class="kdm-input" id="kdm-name-input" placeholder="예: 김강동" autofocus /></div>
+          <input class="kdm-input" id="kdm-name-input" placeholder="예: 김강동" /></div>
         <button class="kdm-btn" id="kdm-start-btn">심사 시작하기</button>
-        <p class="kdm-hint" style="text-align:center;">입력한 평가는 전체 위원과 공유되는 집계표에 반영됩니다.</p>
+        <p class="kdm-hint" style="text-align:center;">입력한 평가는 이 기기와 구글폼(연동 시)에 저장됩니다.</p>
       </div>`;
     const input = document.getElementById('kdm-name-input');
     const btn = document.getElementById('kdm-start-btn');
@@ -496,7 +520,9 @@
         <div class="kdm-cat">
           <div class="kdm-cat-top"><div class="kdm-cat-name">${c.name}</div><div class="kdm-cat-max">${v} / ${c.max}점</div></div>
           <div class="kdm-cat-desc">${c.desc}</div>
-          <div class="kdm-cat-grades">${gradeLine(c.max)}</div>
+          <div class="kdm-graderow">
+            ${gradeBands(c.max).map(g=>`<button type="button" class="kdm-gradechip" data-key="${c.key}" data-mid="${Math.round((g.min+g.max)/2)}">${g.label}<span class="r">${g.range}</span></button>`).join('')}
+          </div>
           <div class="kdm-cat-controls">
             <button class="kdm-stepbtn" data-act="minus" data-key="${c.key}">−</button>
             <input class="kdm-cat-num" inputmode="numeric" data-key="${c.key}" value="${v}" />
@@ -505,6 +531,14 @@
           <div class="kdm-fillbar"><div class="fill" style="width:${p}%"></div></div>
         </div>`;
       }).join('');
+      catsEl.querySelectorAll('.kdm-gradechip').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const key = btn.dataset.key;
+          d[key] = Number(btn.dataset.mid);
+          d.saved = false;
+          drawCats(); updateRing();
+        });
+      });
       catsEl.querySelectorAll('.kdm-stepbtn').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const key = btn.dataset.key;
@@ -555,6 +589,7 @@
         // 사용자 입장에서는 '이 후보자 평가를 완료'한 것으로 취급합니다.
         // (localStorage가 막힌 기기에서도 제출현황/전체집계가 정확히 표시되도록 하기 위함)
         d.saved = true;
+        d.total = total; // 제출현황/전체집계/완료화면이 참조하는 값 — 반드시 갱신해야 함
         const idx = state.candidates.findIndex(c=>c.id===cand.id);
         const next = state.candidates[idx+1] || null;
         state._pendingNextId = next ? next.id : null;
@@ -715,7 +750,8 @@
       <p class="kdm-hint" style="margin-top:0;">
         구글폼 자동 저장:
         <span class="kdm-badge ${GOOGLE_FORM_CONFIG.enabled?'on':'off'}">${GOOGLE_FORM_CONFIG.enabled?'연동됨':'미설정'}</span><br/>
-        평가를 저장하면 이 기기의 데이터는 항상 앱 내부(전체집계)에 저장되며, 구글폼이 연동된 경우 동일 내용이 폼에도 함께 전송됩니다.
+        평가를 저장하면 이 기기(브라우저)에 저장을 시도하며, 구글폼이 연동된 경우 동일 내용이 폼에도 함께 전송됩니다.
+        기기에 따라 저장이 차단될 수 있어(브라우저 보안 설정 등), 구글폼 연동을 켜두는 것을 권장합니다.
       </p>
 
       <div class="kdm-section-title">내 정보</div>
@@ -838,3 +874,5 @@
   boot();
 })();
 </script>
+</body>
+</html>
