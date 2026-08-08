@@ -270,6 +270,7 @@
     candidates:[], currentId:null, draft:{},
     modal:null, adminUnlocked:false, adminEditingId:null,
     refsOpen:{}, aggData:null,
+    confirmOverlay:null, _pendingNextId:null, _confirmTimer:null,
   };
 
   function slugify(name){ return encodeURIComponent(name.trim()).replace(/%/g,'_'); }
@@ -400,10 +401,12 @@
     if(state.view==='score') renderScoreView(body);
     else if(state.view==='status') renderStatusView(body);
     else if(state.view==='agg') renderAggView(body);
+    else if(state.view==='complete') renderCompleteView(body);
 
     if(state.modal==='settings') renderSettingsModal();
     if(state.modal==='criteria') renderCriteriaModal();
     if(state.modal==='admin') renderAdminModal();
+    if(state.confirmOverlay) renderConfirmOverlay();
   }
 
   function currentDraft(id){
@@ -533,12 +536,13 @@
       // 이 기기 저장이 실패하더라도(예: 브라우저 보안 정책으로 storage 차단) 구글폼 전송은
       // 항상 시도합니다 — 둘 중 하나라도 성공하면 점수가 어딘가에는 남아야 하기 때문입니다.
       submitToGoogleForm(cand, d, total);
-      if(ok){
-        d.saved=true;
-        showToast(GOOGLE_FORM_CONFIG.enabled ? '평가가 저장되고 구글폼에 전송되었습니다.' : '평가가 저장되었습니다.');
-        render();
-      } else if(GOOGLE_FORM_CONFIG.enabled){
-        showToast('이 기기 저장은 실패했지만 구글폼 전송은 시도했습니다. 구글시트에서 꼭 확인해주세요.');
+      const handled = ok || GOOGLE_FORM_CONFIG.enabled;
+      if(handled){
+        d.saved = ok; // 상태 표시용: 실제 이 기기 저장 성공 여부만 반영
+        const idx = state.candidates.findIndex(c=>c.id===cand.id);
+        const next = state.candidates[idx+1] || null;
+        state._pendingNextId = next ? next.id : null;
+        showSaveConfirmation(cand.name, !next, next ? next.name : null);
       } else {
         showToast('저장에 실패했습니다. 이 브라우저의 쿠키/사이트 데이터 차단 설정을 확인해주세요.');
       }
@@ -585,6 +589,66 @@
         <div class="kdm-aggmeta"><div>내 점수&nbsp; <b>${r.total!==null? r.total : '-'}</b></div></div>
       </div>`).join('')}
       <p class="kdm-hint">※ 이 화면은 이 기기(브라우저)에 저장된 내 평가만 보여줍니다. 다른 위원의 점수는 포함되지 않으며, 전체 순위·평균은 구글 시트 데이터를 기준으로 산정해 주세요.</p>`;
+  }
+
+  function showSaveConfirmation(candName, isLast, nextName){
+    state.confirmOverlay = { candName, isLast, nextName };
+    render();
+    if(state._confirmTimer) clearTimeout(state._confirmTimer);
+    state._confirmTimer = setTimeout(()=>{ proceedAfterConfirm(); }, 1800);
+  }
+
+  function proceedAfterConfirm(){
+    if(state._confirmTimer){ clearTimeout(state._confirmTimer); state._confirmTimer = null; }
+    if(!state.confirmOverlay) return;
+    const wasLast = state.confirmOverlay.isLast;
+    state.confirmOverlay = null;
+    if(wasLast){
+      state.view = 'complete';
+    } else if(state._pendingNextId){
+      state.currentId = state._pendingNextId;
+    }
+    state._pendingNextId = null;
+    render();
+  }
+
+  function renderConfirmOverlay(){
+    const { candName, isLast, nextName } = state.confirmOverlay;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'kdm-modal-backdrop';
+    backdrop.style.alignItems = 'center';
+    backdrop.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:32px 26px;max-width:320px;width:88%;text-align:center;">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--seal-wash);color:var(--seal);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;font-weight:700;">✓</div>
+        <div style="font-family:'Noto Serif KR',serif;font-weight:700;font-size:16px;line-height:1.5;margin-bottom:8px;">${escapeHtml(candName)} 평가가<br/>정상적으로 저장되었습니다</div>
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;">
+          ${isLast ? '잠시 후 완료 화면으로 이동합니다...' : `잠시 후 ${escapeHtml(nextName)} 평가 화면으로 이동합니다...`}
+        </div>
+        <button class="kdm-btn small" id="kdm-confirm-continue" style="margin-top:20px;">${isLast ? '완료 화면 보기' : '지금 다음 후보로'}</button>
+      </div>`;
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) proceedAfterConfirm(); });
+    document.getElementById('kdm-confirm-continue').addEventListener('click', proceedAfterConfirm);
+  }
+
+  function renderCompleteView(body){
+    const rows = state.candidates.map(c=>{
+      const d = state.draft[c.id];
+      return { name:c.name, total: d ? d.total : null };
+    });
+    body.innerHTML = `
+      <div style="text-align:center;padding:36px 10px 18px;">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--seal-wash);color:var(--seal);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:34px;font-weight:700;">✓</div>
+        <h2 style="font-size:19px;margin-bottom:8px;">모든 후보자 평가를 완료하였습니다</h2>
+        <p style="font-size:13px;color:var(--ink-soft);line-height:1.7;">소중한 시간 내어 강동미술인상 심사에 참여해 주셔서<br/>진심으로 감사드립니다.</p>
+      </div>
+      <div class="kdm-section-title">내가 매긴 점수</div>
+      ${rows.map(r=>`<div class="kdm-statusrow">
+        <div class="kdm-statusname">${escapeHtml(r.name)}</div>
+        <div class="kdm-statusscore ${r.total==null?'empty':''}">${r.total!=null ? r.total+' 점' : '미평가'}</div>
+      </div>`).join('')}
+      <p class="kdm-hint">수정하고 싶은 점수가 있다면 하단 '심사' 탭에서 해당 후보자를 다시 선택해 수정 후 저장하시면 됩니다.</p>
+    `;
   }
 
   function renderCriteriaModal(){
