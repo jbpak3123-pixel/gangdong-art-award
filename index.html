@@ -1,0 +1,724 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  :root{
+    --paper:#FAF7F1;
+    --paper-alt:#F1ECE1;
+    --card:#FFFFFF;
+    --ink:#22201C;
+    --ink-soft:#6B6558;
+    --navy:#1F2D46;
+    --navy-dark:#16223A;
+    --seal:#9A2B2B;
+    --seal-light:#C1484A;
+    --seal-wash:#F6E9E7;
+    --gold:#B08D57;
+    --line:#E3DDCE;
+    --good:#3E6B4F;
+    font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  #kdm-root{background:var(--paper);color:var(--ink);min-height:100%;padding-bottom:84px;}
+  .kdm-wrap{max-width:480px;margin:0 auto;padding:0 16px;}
+  h1,h2,h3{font-family:'Noto Serif KR',serif;margin:0;}
+  .serif{font-family:'Noto Serif KR',serif;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  .kdm-header{background:var(--navy);background-image:linear-gradient(160deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;padding:18px 0 16px;position:relative;}
+  .kdm-header .kdm-wrap{display:flex;align-items:center;justify-content:space-between;}
+  .kdm-title{font-size:17px;font-weight:700;letter-spacing:.3px;}
+  .kdm-sub{font-size:11px;color:#C7CEDA;margin-top:2px;letter-spacing:.5px;}
+  .kdm-icons{display:flex;gap:8px;}
+  .kdm-gear{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;border:none;color:#fff;cursor:pointer;}
+  .kdm-gear svg{width:17px;height:17px;}
+  .kdm-goldline{height:2px;background:linear-gradient(90deg,transparent, var(--gold) 20%, var(--gold) 80%, transparent);}
+
+  .kdm-login{padding:60px 0 40px;}
+  .kdm-login .kdm-seal{width:64px;height:64px;border-radius:50%;border:2px solid var(--seal);color:var(--seal);display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-weight:700;font-size:13px;margin:0 auto 20px;}
+  .kdm-login h2{text-align:center;font-size:20px;margin-bottom:6px;}
+  .kdm-login p.desc{text-align:center;color:var(--ink-soft);font-size:13px;margin:0 0 28px;line-height:1.6;}
+  .kdm-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:500;}
+  .kdm-input,.kdm-textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:10px;font-size:16px;background:var(--card);color:var(--ink);font-family:inherit;}
+  .kdm-input:focus,.kdm-textarea:focus{outline:none;border-color:var(--navy);}
+  .kdm-btn{width:100%;padding:14px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:18px;font-family:'Noto Sans KR',sans-serif;}
+  .kdm-btn:active{background:var(--navy-dark);}
+  .kdm-btn.outline{background:transparent;border:1px solid var(--navy);color:var(--navy);}
+  .kdm-btn.ghost{background:transparent;color:var(--seal);font-weight:600;padding:10px;}
+  .kdm-btn.small{width:auto;padding:9px 16px;margin-top:0;font-size:13px;}
+  .kdm-btn:disabled{opacity:.45;}
+
+  .kdm-tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom);}
+  .kdm-tabbar .kdm-wrap{display:flex;width:100%;max-width:480px;padding:0;}
+  .kdm-tab{flex:1;text-align:center;padding:11px 4px 9px;border:none;background:none;color:var(--ink-soft);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .kdm-tab .ico{display:block;font-size:18px;margin-bottom:2px;}
+  .kdm-tab.active{color:var(--seal);}
+
+  .kdm-chiprow{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;-webkit-overflow-scrolling:touch;}
+  .kdm-chiprow::-webkit-scrollbar{display:none;}
+  .kdm-chip{flex:0 0 auto;padding:9px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+  .kdm-chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .kdm-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--good);}
+  .kdm-chip.active .dot{background:#8FD9A8;}
+
+  .kdm-ringwrap{display:flex;flex-direction:column;align-items:center;padding:18px 0 6px;}
+  .kdm-ring{position:relative;width:130px;height:130px;}
+  .kdm-ring svg{transform:rotate(-90deg);}
+  .kdm-ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .kdm-ring .num .val{font-family:'Noto Serif KR',serif;font-weight:700;font-size:30px;color:var(--seal);line-height:1;}
+  .kdm-ring .num .lbl{font-size:10px;color:var(--ink-soft);margin-top:3px;letter-spacing:.5px;}
+  .kdm-candname{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;margin-top:10px;text-align:center;}
+  .kdm-savedbadge{font-size:11px;color:var(--good);margin-top:2px;font-weight:600;}
+  .kdm-draftbadge{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .kdm-syncbadge{font-size:10px;color:var(--gold);margin-top:1px;}
+
+  .kdm-refsbox{background:var(--seal-wash);border:1px solid #E9D3CF;border-radius:12px;margin:12px 0;overflow:hidden;}
+  .kdm-refs-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--seal);}
+  .kdm-refs-body{padding:0 14px 14px;}
+  .kdm-refs-item{margin-bottom:10px;}
+  .kdm-refs-item .lbl{font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+  .kdm-refs-item .txt{font-size:12.5px;line-height:1.6;color:var(--ink);white-space:pre-wrap;}
+  .kdm-refs-empty{font-size:12px;color:var(--ink-soft);padding:2px 0 6px;}
+  .kdm-refs-note{font-size:10.5px;color:var(--ink-soft);border-top:1px dashed #E9D3CF;padding-top:8px;margin-top:2px;}
+
+  .kdm-cat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;margin-bottom:10px;}
+  .kdm-cat-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
+  .kdm-cat-name{font-weight:700;font-size:14.5px;}
+  .kdm-cat-max{font-size:12px;color:var(--ink-soft);}
+  .kdm-cat-desc{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:4px;}
+  .kdm-cat-grades{font-size:10.5px;color:var(--gold);font-weight:600;margin-bottom:10px;letter-spacing:.1px;}
+  .kdm-cat-controls{display:flex;align-items:center;gap:10px;}
+  .kdm-stepbtn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--paper-alt);font-size:18px;color:var(--navy);cursor:pointer;font-weight:700;flex:0 0 auto;}
+  .kdm-stepbtn:active{background:var(--line);}
+  .kdm-cat-num{flex:1;text-align:center;font-size:20px;font-weight:700;border:1px solid var(--line);border-radius:9px;padding:8px 4px;font-family:'Noto Serif KR',serif;color:var(--ink);}
+  .kdm-fillbar{height:5px;border-radius:3px;background:var(--paper-alt);margin-top:10px;overflow:hidden;}
+  .kdm-fillbar .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--seal));border-radius:3px;transition:width .15s;}
+
+  .kdm-note-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin:14px 0 6px;}
+  textarea.kdm-textarea{min-height:78px;resize:vertical;font-size:13.5px;}
+  .kdm-savebar{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,var(--paper) 30%);padding:14px 0 4px;}
+
+  .kdm-statusrow{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;}
+  .kdm-statusname{font-weight:700;font-size:14px;}
+  .kdm-statusmeta{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .kdm-statusscore{font-family:'Noto Serif KR',serif;font-weight:700;font-size:19px;color:var(--seal);}
+  .kdm-statusscore.empty{color:var(--ink-soft);font-size:13px;font-weight:600;font-family:inherit;}
+
+  .kdm-aggcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+  .kdm-aggtop{display:flex;justify-content:space-between;align-items:center;}
+  .kdm-aggname{font-weight:700;font-size:14.5px;}
+  .kdm-aggrank{font-size:11px;font-weight:700;color:#fff;background:var(--navy);padding:2px 9px;border-radius:12px;}
+  .kdm-aggmeta{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--ink-soft);}
+  .kdm-aggmeta b{color:var(--ink);font-family:'Noto Serif KR',serif;font-size:15px;}
+
+  .kdm-section-title{font-size:13px;font-weight:700;color:var(--navy);margin:18px 0 4px;letter-spacing:.3px;}
+  .kdm-empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:40px 10px;line-height:1.7;}
+  .kdm-toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;}
+  .kdm-toast.show{opacity:1;}
+
+  .kdm-modal-backdrop{position:fixed;inset:0;background:rgba(20,20,20,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;}
+  .kdm-modal{background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto;}
+  .kdm-modal h3{font-size:16px;margin-bottom:14px;}
+  .kdm-modal-close{float:right;border:none;background:none;font-size:20px;color:var(--ink-soft);cursor:pointer;}
+  .kdm-candrow{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;}
+  .kdm-candrow .nm{flex:1;font-weight:600;font-size:13.5px;}
+  .kdm-editbtn{border:none;background:var(--paper-alt);color:var(--navy);width:34px;height:34px;border-radius:8px;font-size:14px;cursor:pointer;flex:0 0 auto;}
+  .kdm-delbtn{border:none;background:var(--seal-wash);color:var(--seal);width:34px;height:34px;border-radius:8px;font-size:15px;cursor:pointer;flex:0 0 auto;}
+  .kdm-spinner{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--seal);border-radius:50%;animation:kdmspin .7s linear infinite;margin:30px auto;}
+  @keyframes kdmspin{to{transform:rotate(360deg);}}
+  .kdm-hint{font-size:11px;color:var(--ink-soft);line-height:1.6;margin-top:10px;}
+  .kdm-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .kdm-badge.on{background:#E4F0E7;color:var(--good);}
+  .kdm-badge.off{background:var(--paper-alt);color:var(--ink-soft);}
+  .kdm-critable{width:100%;border-collapse:collapse;margin-top:6px;}
+  .kdm-critable th,.kdm-critable td{border:1px solid var(--line);padding:8px;font-size:11.5px;text-align:left;vertical-align:top;}
+  .kdm-critable th{background:var(--paper-alt);font-weight:700;}
+  .kdm-formfield{margin-bottom:12px;}
+  .kdm-formfield label{display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+</style>
+
+<div id="kdm-root"></div>
+<div id="kdm-toast" class="kdm-toast"></div>
+
+<script>
+(function(){
+  /* =========================================================================
+     구글폼 자동 저장 연동 설정
+     ---------------------------------------------------------------------
+     1) Google Forms에서 아래 항목을 "순서대로" 만드세요(모두 단답형):
+        심사위원명, 후보자명, 협회기여도, 조직공헌도, 협업및교류, 창작활동, 합계
+     2) 각 문항의 점 3개 메뉴 → "미리 채워진 링크 받기"로 링크를 만들면
+        URL에 entry.123456789=... 형태의 파라미터가 보입니다. 그 숫자를 아래에 넣으세요.
+     3) formActionUrl 은 폼 URL의 .../viewform 을 .../formResponse 로 바꾼 값입니다.
+     4) 다 채운 뒤 enabled 를 true 로 바꾸면 "평가 저장" 시 자동으로 폼에도 전송됩니다.
+     5) resultsSheetUrl 에는 폼 응답이 쌓이는 구글 시트의 공유 링크를 넣으세요.
+        전체집계 탭에 "구글 시트에서 결과 보기" 바로가기 버튼이 생깁니다.
+     ========================================================================= */
+  const GOOGLE_FORM_CONFIG = {
+    enabled: false,
+    formActionUrl: 'https://docs.google.com/forms/d/e/여기에_실제_FORM_ID를_입력/formResponse',
+    resultsSheetUrl: '', // 예: 'https://docs.google.com/spreadsheets/d/여기에_시트_ID/edit'
+    entries: {
+      judgeName: 'entry.111111111',
+      candidateName: 'entry.222222222',
+      a: 'entry.333333333',
+      b: 'entry.444444444',
+      c: 'entry.555555555',
+      d: 'entry.666666666',
+      total: 'entry.777777777',
+    }
+  };
+
+  const ADMIN_CODE = 'gdmi2026'; // 관리자(개발자) 코드 — 필요 시 이 값을 바꾸세요.
+
+  /* =========================================================================
+     접수 마감된 추천서 시드 데이터 (a~f후보)
+     - 추천인·후보자 성명·연락처는 원본에서부터 제외하고 옮겨 적었습니다(블라인드).
+     - d후보는 자필 기재 항목이 적어 협회기여도/종합의견만 있고 나머지는 빈 값입니다.
+       손글씨 판독이 불확실한 부분은 [ ]로 표시했으니 관리자 화면에서 확인 후 수정하세요.
+     - 이 배열은 공유 저장소(kdm:candidates)가 "비어 있을 때 최초 1회만" 자동으로 채워집니다.
+       이미 후보자가 등록되어 있으면 아래 값은 무시됩니다.
+     ========================================================================= */
+  const SEED_CANDIDATES = [
+    { id:'seed-a', name:'a후보', refs:{
+      a:'후보자는 오랫동안 강동미술협회 회원으로 활동하며 협회의 발전을 위해 헌신해 왔습니다. 특히 강동미술협회 회장을 역임하면서 협회의 안정적인 운영과 회원 화합을 이끌었으며, 협회가 추진하는 전시와 각종 행사에도 적극 참여하여 모범을 보여왔습니다. 협회의 발전을 개인의 일이 아닌 공동의 책무로 여기며 항상 솔선수범하는 자세로 협회 발전에 크게 기여하였습니다.',
+      b:'후보자는 회장 재임 기간은 물론 이후에도 지속적으로 신입회원 유치에 힘써 협회의 양적 성장과 조직 기반 확대에 크게 기여하였습니다. 또한 후배 미술인 발굴과 양성을 위해 노력하며 협회의 미래 성장 기반을 마련하는 데 힘써왔습니다. 각종 행사와 사업 추진 시에는 꾸준한 후원을 통해 협회의 재정적 안정과 원활한 사업 운영을 지원하는 등 조직 발전에 지속적으로 공헌하였습니다.',
+      c:'후보자는 선후배 회원들과의 신뢰와 화합을 바탕으로 협회의 단결과 협력 분위기 조성에 앞장서 왔습니다. 또한 지역사회 주요 기관과 문화예술계, 지역 리더그룹과의 지속적인 교류와 협력 기반을 구축하여 강동미술협회의 대외적 위상을 높이는 데 크게 기여하였습니다. 협회의 다양한 사업이 지역사회와 긴밀하게 연계될 수 있도록 노력하였으며, 이를 통해 협회의 사회적 신뢰와 영향력 확대에도 중요한 역할을 수행하였습니다.',
+      d:'후보자는 협회가 주관하는 전시와 다양한 미술 활동에 꾸준히 참여하며 성실한 창작활동을 이어오고 있습니다. 지속적인 작품 발표와 전시 참여를 통해 작가로서의 역량을 발전시켜 왔으며, 창작에 대한 열정과 성실한 활동으로 회원들에게 귀감이 되고 협회의 예술적 위상 제고에도 기여하고 있습니다.',
+      summary:'후보자는 오랜 기간 강동미술협회의 발전과 성장을 위해 헌신해 온 대표적인 회원입니다. 회장직을 역임하며 조직의 기반을 다지고 회원 화합과 협회 활성화를 위해 노력하였으며, 신입회원 유치와 후배 미술인 양성에 앞장서 협회의 성장 기반을 마련하였습니다. 또한 각종 행사와 사업에 꾸준한 후원을 통해 협회의 안정적인 운영을 지원하였고, 협회가 추진하는 모든 행사에 적극 참여하며 솔선수범하는 자세를 실천해 왔습니다. 특히 지역사회 주요 기관과 문화예술계, 지역 리더그룹과의 폭넓은 교류를 통해 강동미술협회의 대외적 위상을 높이고 협회의 역할과 가치를 널리 알리는 데 크게 기여하였습니다. 이러한 리더십과 봉사정신, 조직에 대한 헌신, 그리고 지역사회와의 연계 활동은 강동미술인상이 추구하는 가치에 부합하는 뛰어난 공적으로 판단되며, 이에 강동미술인상 후보로 적극 추천합니다.'
+    }},
+    { id:'seed-b', name:'b후보', refs:{
+      a:'후보자는 지난 1년간 강동미술협회가 주관한 모든 전시행사에 빠짐없이 참여하고 협회 운영에 적극 협조하며 항상 책임감 있는 자세로 협회 행사를 모범적으로 실천해 왔고, 협회의 발전을 위해 묵묵히 헌신하는 모습이 매우 인상적이었습니다. (특히 두드러진 강점)',
+      b:'후보자는 지난 집행부 때부터 현재까지 협회의 발전을 위해 꾸준한 후원금을 기부하며 협회 운영과 각종 사업 추진에 지속적인 지원을 아끼지 않았습니다. 또한 한국기록원(KRI) 공식기록 인증과 대한민국 명인으로 선정되는 성과를 이루어 강동미술협회의 위상을 높였으며, 회원 개인의 성취를 넘어 협회의 명예와 지역 미술계의 자긍심을 높이는데 크게 기여하였습니다. (특히 두드러진 강점)',
+      c:'후보자는 항상 성실하고 겸손한 자세로 회원들과 원만한 관계를 유지하며 배려하는 모습을 보여왔습니다. 협회 사업에도 적극 협조하며 회원들과의 신뢰를 바탕으로 서로 배려하는 문화를 실천하여, 협회의 단합과 건전한 조직문화 조성에 모범적인 역할을 수행하고 있습니다. (특히 두드러진 강점)',
+      d:'후보자는 협회가 참여하는 모든 전시에 성실하게 작품을 출품하며 회원으로서 모범적인 창작활동을 이어오고 있습니다. 특히 자연석 등불 분야에서 한국기록원(KRI) 공식기록 인증과 대한민국 명인으로 선정되는 등 뛰어난 예술성과 창작역량을 객관적으로 인정받았습니다. 이러한 성과는 강동미술협회의 위상을 높이는 데도 크게 기여하였습니다. (특히 두드러진 강점)',
+      summary:'후보자는 창작활동과 봉사, 조직 공헌을 두루 실천해 온 강동미술협회의 모범적인 회원입니다. 지난 집행부부터 협회를 위해 꾸준한 후원금을 기부하며 조직발전에 기여하였고, 협회가 주관하는 모든 전시행사에 성실하게 참여하며 협회 운영에 힘을 보태왔습니다. 또한 활발한 작품활동을 통해 한국기록원(KRI) 공식기록 인증과 대한민국 명인으로 선정되는 영예를 안으며 강동미술협회의 위상을 높였고, 모든 전시에 적극 참여하는 성실한 자세로 회원들의 귀감이 되고 있습니다. 이러한 공헌과 예술적 성과를 종합적으로 고려할 때 강동미술협회의 위상에 가장 부합하는 회원이라 판단되어 적극 추천합니다.'
+    }},
+    { id:'seed-c', name:'c후보', refs:{
+      a:'후보자는 오랜 기간 강동미술협회 회원으로 활동하면서 협회의 발전과 회원 간 화합을 위해 꾸준한 노력해 왔습니다. 특히 협회가 추진하는 전시 및 각종 행사에 빠짐없이 적극적으로 참여하여 협회 사업의 원활한 추진에 보탬을 주었으며, 회원으로서 맡은 역할에 성실하게 임하는 모범적인 자세로 협회 발전에 지속적으로 기여하였습니다.',
+      b:'강동미술협회의 발전과 사업 활성화를 위해 지속적인 관심과 애정을 가지고 협회 행사와 사업에 후원하는 등 재정적인 지원을 아끼지 않았습니다. 협회의 다양한 사업이 안정적으로 추진될 수 있도록 물심양면으로 지원하며 회원으로서의 책임과 협회에 대한 애정을 실천해 왔다는 점에서 조직에 대한 공헌도가 매우 높습니다.',
+      c:'협회가 추진하는 각종 행사와 사업에 적극적으로 참여하고 협조하면서 회원들과 원만한 관계를 유지해 왔습니다. 오랜 회원 활동을 통해 후배 회원들과 자연스럽게 소통하고 협력하며, 협회의 화합과 친목을 이루는 데도 긍정적인 역할을 해왔습니다. 성실하고 책임감 있는 회원으로서 다른 회원들에게도 모범이 되고 있습니다.',
+      d:'꾸준한 작품활동과 전시 참여를 통해 작가로서의 창작 역량을 지속적으로 발전시켜 왔으며, 협회가 주관하는 전시에도 성실하게 참여하여 회원으로서의 모범을 보여주고 있습니다. 지속적인 창작과 작품 발표를 통해 지역 미술인으로서의 활동 위상을 넓혀왔으며, 이러한 성실한 예술활동은 개인의 발전을 넘어 협회의 대외적인 이미지를 높이는 데도 기여하고 있습니다.',
+      summary:'후보자는 오랜 기간 강동미술협회 회원으로 활동하며 협회의 발전을 위해 한결같은 관심과 애정을 가지고 헌신해 온 모범적인 회원입니다. 협회가 추진하는 각종 전시와 행사에 적극적으로 참여하여 협회 사업의 원활한 추진에 힘을 보태왔으며, 협회 발전을 위한 후원에도 지속적으로 참여하여 재정적 측면에서도 협회 운영과 사업 활성화에 기여하였습니다. 이처럼 후보자는 적극적인 참여, 지속적인 후원, 성실한 창작활동을 꾸준히 실천해 온 회원으로 강동미술인상 후보자로 적극 추천합니다.'
+    }},
+    { id:'seed-d', name:'d후보', refs:{
+      a:'연임에도 남다른 수고가 많아 강점으로 사료됨',
+      b:'',
+      c:'',
+      d:'',
+      summary:'메세나상 2인은 위임합니다.'
+    }},
+    { id:'seed-e', name:'e후보', refs:{
+      a:'후보자는 지난 1년간 협회가 주관한 모든 전시행사에 빠짐없이 참여하여 전시작품 설치, 전시당번, 작품 반입·철수 등 전 과정에서 자발적인 봉사활동을 실천하였습니다. 눈에 띄는 역할보다 협회 집행부의 원활한 운영을 위해 묵묵히 맡은 책임을 다하며 행사 성공에 크게 기여하였고, 항상 솔선수범하는 자세로 회원들에게 귀감이 되었습니다. (특히 두드러진 강점)',
+      b:'후보자는 협회가 추진한 회원 야유회 행사에서 사전답사, 행사 준비, 현장 운영 등 모든 과정에 적극적으로 참여하여 원활한 행사 진행에 크게 기여하였습니다. 또한 협회의 안정적인 사업 추진과 발전을 위해 자발적으로 후원금을 기부하는 등 물심양면으로 협회를 지원하며 조직 발전에 지속적으로 공헌하였습니다. (특히 두드러진 강점)',
+      c:'후보자는 항상 겸손하고 성실한 자세로 협회 추진사업에 적극 협조하였으며, 회원들과 원만한 인간관계를 유지하고 선후배 회원들과의 소통과 배려를 실천하여 협회의 단합된 분위기 조성에 기여하였으며, 서로 돕고 함께하는 협회 문화를 만드는 데 모범적인 역할을 수행하였습니다. (특히 두드러진 강점)',
+      d:'후보자는 최근 1년간 협회가 주관한 모든 전시에 성실하게 작품을 출품하였으며, 개인전 등 다양한 창작 활동을 지속적으로 이어오면서 작가로서의 역량을 꾸준히 발전시켜 왔으며, 창작에 대한 열정과 성실한 작품 활동은 협회의 위상을 높이는 데 기여하였으며, 회원으로서 모범적인 예술 활동을 실천하였습니다. (특히 두드러진 강점)',
+      summary:'후보자는 지난 1년간 협회의 전시사업과 행사 전반에 자발적인 봉사정신으로 적극 참여하여 협회 발전에 크게 기여하였습니다. 전시 준비와 운영, 행사 지원, 후원 활동은 물론 성실한 창작활동과 원만한 대인관계를 통해 회원들의 신뢰와 존경을 받아왔습니다. 개인의 이익보다 협회의 발전을 우선하며 항상 묵묵히 실천하는 모습은 강동미술인상이 추구하는 봉사와 창작, 화합의 가치를 가장 잘 보여주는 모범적인 사례라고 판단되어 강동미술인상 후보자로 적극 추천합니다.'
+    }},
+    { id:'seed-f', name:'f후보', refs:{
+      a:'후보자는 지난 1년간 협회가 주관한 모든 전시행사에서 전시작품 설치와 철수 등 많은 인력과 노력이 필요한 현장 업무에 빠짐없이 참여하여 협회의 원활한 전시 운영에 크게 기여하였습니다. 특히 남성 인력이 반드시 필요한 작업에 항상 솔선수범하며 책임감 있게 봉사하여 행사마다 든든한 역할을 수행하였고, 협회를 위한 헌신적인 봉사정신을 몸소 실천해 왔습니다. (특히 두드러진 강점)',
+      b:'후보자는 분과위원장(운영위원)으로 활동하면서 협회사업이 원활하게 추진될 수 있도록 적극 협조하였으며, 인근 미술단체와의 지속적인 교류와 협력을 통해 강동미술협회의 위상을 높이는데 기여하였습니다. 협회의 대외 네트워크를 확대하고 지역 미술계의 협력 기반을 다지는 데 앞장서며 조직 발전에 의미 있는 역할을 수행하였습니다. (특히 두드러진 강점)',
+      c:'후보자는 항상 겸손하고 성실한 자세로 협회 사업에 적극 협조하였으며, 회원들과 원만한 관계를 유지하며 화합과 친목 분위기를 조성하는 데 모범을 보여 왔습니다. 선후배 회원들과의 신뢰와 배려를 바탕으로 협회의 단합을 이끌어 왔으며, 협력과 소통을 실천하는 모범적인 회원으로 많은 회원들의 신망을 받고 있다고 생각합니다. (특히 두드러진 강점)',
+      d:'후보자는 최근 1년간 협회가 주관한 모든 전시에 성실하게 작품을 출품하였으며, 개인전, 외부소속단체전 등 다양한 창작활동을 활발하게 이어오면서 작가로서의 역량을 꾸준히 발전시켜 왔습니다. 창작에 대한 열정과 성실한 작품 활동을 통해 협회의 위상을 높이는 데 기여하였으며, 회원들에게 귀감이 되는 모범적인 예술 활동을 실천하였습니다. (특히 두드러진 강점)',
+      summary:'후보자는 지난 1년간 협회가 추진한 전시사업과 각종 협회 활동에 누구보다 성실하고 적극적으로 참여하며 협회의 발전에 크게 기여하였습니다. 특히 전시작품 철수 등 많은 인력과 경험이 요구되는 현장 업무를 책임감 있게 수행하고, 남성 인력이 필요한 봉사에도 항상 앞장서는 등 묵묵한 실천으로 협회의 든든한 버팀목 역할을 해왔습니다. 또한 분과위원장으로서 대외 교류를 활성화하여 협회의 위상을 높였으며, 모든 협회 전시에 성실히 참여하고 개인전 등 활발한 창작활동을 이어가는 한편 회원들과의 화합과 신뢰를 바탕으로 모범적인 공동체 문화를 만들어 왔습니다. 이러한 공헌 성과를 종합적으로 고려할 때 강동미술인상이 추구하는 가치에 가장 부합하는 회원이라 판단되어 적극 추천합니다.'
+    }},
+  ];
+
+  const CATS = [
+    {key:'a', name:'협회기여도', max:25, desc:'행사 참여, 협회 운영사업(포럼·워크숍 등) 참여도'},
+    {key:'b', name:'조직공헌도', max:25, desc:'회원 확대, 재정사업 기여, 후원 연계 등 봉사·공헌'},
+    {key:'c', name:'협업 및 교류', max:20, desc:'회원으로서의 품격, 협조성, 주변 회원과의 관계'},
+    {key:'d', name:'창작활동', max:30, desc:"'25.09~'26.08 창작·전시 활동(질·양)"},
+  ];
+  const MAXTOTAL = CATS.reduce((s,c)=>s+c.max,0);
+
+  function gradeBands(max){
+    const vMin = Math.round(max*0.9);
+    const gMin = Math.round(max*0.7);
+    const oMin = Math.round(max*0.4);
+    return [
+      {label:'매우우수', range:`${vMin}~${max}`},
+      {label:'우수', range:`${gMin}~${vMin-1}`},
+      {label:'보통', range:`${oMin}~${gMin-1}`},
+      {label:'미흡', range:`0~${oMin-1}`},
+    ];
+  }
+  function gradeLine(max){
+    return gradeBands(max).map(g=>`${g.label} ${g.range}`).join(' · ');
+  }
+
+  /* =========================================================================
+     저장소 어댑터
+     ---------------------------------------------------------------------
+     이전 버전은 Claude 아티팩트 전용 API인 window.storage를 사용했습니다.
+     이 API는 claude.ai 안에서 미리보기로 열 때만 존재하며, 파일을 다운로드해
+     로컬에서 열거나(GitHub Pages 등) 외부에 배포하면 window.storage 자체가
+     없어서 모든 저장이 조용히 실패합니다 — "평가 저장" 버튼이 안 되던 원인입니다.
+     외부 배포 환경에서는 표준 브라우저 localStorage가 정상 동작하므로 이걸로 교체합니다.
+     (이 기기에만 저장되며, 위원 간 데이터 공유는 구글폼으로 처리합니다.)
+     ========================================================================= */
+  const LocalStore = {
+    get(key){ try{ const v = localStorage.getItem(key); return v===null? null : {value:v}; }catch(e){ return null; } },
+    set(key, value){ try{ localStorage.setItem(key, value); return {value}; }catch(e){ return null; } },
+    remove(key){ try{ localStorage.removeItem(key); }catch(e){} },
+  };
+
+  const root = document.getElementById('kdm-root');
+  const toastEl = document.getElementById('kdm-toast');
+
+  let state = {
+    view:'loading', judgeName:null, judgeSlug:null,
+    candidates:[], currentId:null, draft:{},
+    modal:null, adminUnlocked:false, adminEditingId:null,
+    refsOpen:{}, aggData:null,
+  };
+
+  function slugify(name){ return encodeURIComponent(name.trim()).replace(/%/g,'_'); }
+  function showToast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),1700); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function safeGet(key){ const r = LocalStore.get(key); return r ? r.value : null; }
+  function safeSet(key, value){ const r = LocalStore.set(key, value); return !!r; }
+  function safeDelete(key){ LocalStore.remove(key); }
+
+  const CAND_KEY = 'kdm:candidates';
+  async function loadCandidates(){
+    const raw = await safeGet(CAND_KEY, true);
+    if(!raw){
+      // 공유 저장소에 후보자 데이터가 아예 없는 최초 상태 → 접수 마감된 a~f후보로 시드 등록
+      await saveCandidates(SEED_CANDIDATES);
+      return SEED_CANDIDATES;
+    }
+    try{
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length===0){
+        await saveCandidates(SEED_CANDIDATES);
+        return SEED_CANDIDATES;
+      }
+      return parsed;
+    }catch(e){ return []; }
+  }
+  async function saveCandidates(list){ await safeSet(CAND_KEY, JSON.stringify(list), true); }
+
+  function evalKey(judgeSlug, candId){ return `kdm:eval:${judgeSlug}:${candId}`; }
+  async function loadMyEval(candId){
+    const raw = await safeGet(evalKey(state.judgeSlug, candId), true);
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+  async function saveMyEval(candId, data){ await safeSet(evalKey(state.judgeSlug, candId), JSON.stringify(data), true); }
+
+  function submitToGoogleForm(cand, d, total){
+    if(!GOOGLE_FORM_CONFIG.enabled) return;
+    try{
+      const fd = new FormData();
+      const E = GOOGLE_FORM_CONFIG.entries;
+      fd.append(E.judgeName, state.judgeName);
+      fd.append(E.candidateName, cand.name);
+      fd.append(E.a, String(d.a||0));
+      fd.append(E.b, String(d.b||0));
+      fd.append(E.c, String(d.c||0));
+      fd.append(E.d, String(d.d||0));
+      fd.append(E.total, String(total));
+      fetch(GOOGLE_FORM_CONFIG.formActionUrl, {method:'POST', mode:'no-cors', body:fd}).catch(()=>{});
+    }catch(e){ /* 자동 전송 실패는 조용히 무시 — 이 기기 저장이 항상 우선 */ }
+  }
+
+  function render(){
+    if(state.view==='loading'){ root.innerHTML = `<div class="kdm-wrap"><div class="kdm-spinner"></div></div>`; return; }
+    if(state.view==='login'){ renderLogin(); return; }
+    renderShell();
+  }
+
+  function renderLogin(){
+    root.innerHTML = `
+      <div class="kdm-wrap kdm-login">
+        <div class="kdm-seal">강동<br/>미협</div>
+        <h2>강동미술인상 심사평가</h2>
+        <p class="desc">배점기준에 따라 후보자를 채점합니다.<br/>성명을 입력하고 시작하세요.</p>
+        <div class="kdm-field"><label>심사위원 성명</label>
+          <input class="kdm-input" id="kdm-name-input" placeholder="예: 김강동" autofocus /></div>
+        <button class="kdm-btn" id="kdm-start-btn">심사 시작하기</button>
+        <p class="kdm-hint" style="text-align:center;">입력한 평가는 전체 위원과 공유되는 집계표에 반영됩니다.</p>
+      </div>`;
+    const input = document.getElementById('kdm-name-input');
+    const btn = document.getElementById('kdm-start-btn');
+    const start = async ()=>{
+      const v = input.value.trim(); if(!v) return;
+      state.judgeName=v; state.judgeSlug=slugify(v);
+      await safeSet('kdm:my_judge_name', v, false);
+      await bootAfterLogin();
+    };
+    btn.addEventListener('click', start);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter') start(); });
+  }
+
+  function renderShell(){
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="kdm-header"><div class="kdm-wrap">
+        <div>
+          <div class="kdm-title">강동미술인상 심사평가</div>
+          <div class="kdm-sub">심사위원 · ${escapeHtml(state.judgeName||'')}</div>
+        </div>
+        <div class="kdm-icons">
+          <button class="kdm-gear" id="kdm-crit-btn" aria-label="배점기준">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          </button>
+          <button class="kdm-gear" id="kdm-gear-btn" aria-label="설정">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68c.31 0 .61-.06.88-.18A1.65 1.65 0 0011 3.09V3a2 2 0 114 0v.09c0 .66.39 1.25 1 1.51.28.12.58.18.88.18.62 0 1.21-.24 1.65-.66l.06-.06a2 2 0 112.83 2.83l-.06.06c-.42.44-.66 1.03-.66 1.65 0 .3.06.6.18.87.26.61.85 1 1.51 1H21a2 2 0 110 4h-.09c-.66 0-1.25.39-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div></div>
+      <div class="kdm-goldline"></div>
+      <div class="kdm-wrap" id="kdm-body"></div>
+      <div class="kdm-tabbar"><div class="kdm-wrap">
+        <button class="kdm-tab ${state.view==='score'?'active':''}" data-tab="score"><span class="ico">✎</span>심사</button>
+        <button class="kdm-tab ${state.view==='status'?'active':''}" data-tab="status"><span class="ico">📋</span>제출현황</button>
+        <button class="kdm-tab ${state.view==='agg'?'active':''}" data-tab="agg"><span class="ico">◎</span>전체집계</button>
+      </div></div>`;
+    root.innerHTML=''; root.appendChild(wrap);
+    document.getElementById('kdm-gear-btn').addEventListener('click', ()=>{ state.modal='settings'; render(); });
+    document.getElementById('kdm-crit-btn').addEventListener('click', ()=>{ state.modal='criteria'; render(); });
+    root.querySelectorAll('.kdm-tab').forEach(b=> b.addEventListener('click', ()=>{ state.view=b.dataset.tab; render(); }));
+    const body = document.getElementById('kdm-body');
+    if(state.view==='score') renderScoreView(body);
+    else if(state.view==='status') renderStatusView(body);
+    else if(state.view==='agg') renderAggView(body);
+
+    if(state.modal==='settings') renderSettingsModal();
+    if(state.modal==='criteria') renderCriteriaModal();
+    if(state.modal==='admin') renderAdminModal();
+  }
+
+  function currentDraft(id){
+    if(!state.draft[id]) state.draft[id] = {a:0,b:0,c:0,d:0,note:'',saved:false};
+    return state.draft[id];
+  }
+
+  function renderScoreView(body){
+    if(state.candidates.length===0){
+      body.innerHTML = `<div class="kdm-empty">등록된 후보자가 없습니다.<br/>후보자 접수 마감 후 관리자가 설정(⚙)에서 등록합니다.</div>`;
+      return;
+    }
+    if(!state.currentId || !state.candidates.find(c=>c.id===state.currentId)) state.currentId = state.candidates[0].id;
+
+    const chips = state.candidates.map(c=>{
+      const d = state.draft[c.id]; const done = d && d.saved;
+      return `<button class="kdm-chip ${c.id===state.currentId?'active':''}" data-id="${c.id}">
+        <span class="dot" style="opacity:${done?1:0.15}"></span>${escapeHtml(c.name)}</button>`;
+    }).join('');
+
+    const cand = state.candidates.find(c=>c.id===state.currentId);
+    const refs = cand.refs || {};
+    const hasAnyRef = CATS.some(c=>refs[c.key]) || refs.summary;
+    const d = currentDraft(cand.id);
+    const total = CATS.reduce((s,c)=>s+(Number(d[c.key])||0),0);
+    const pct = Math.round((total/MAXTOTAL)*100);
+    const R=54, C=2*Math.PI*R, off=C*(1-pct/100);
+    // 요청에 따라 채점 전 추천서를 기본적으로 펼쳐서 보여줌 (사용자가 명시적으로 접기 전까지 true)
+    const refsOpen = state.refsOpen[cand.id] !== false;
+
+    body.innerHTML = `
+      <div class="kdm-chiprow">${chips}</div>
+      <div class="kdm-ringwrap">
+        <div class="kdm-ring">
+          <svg width="130" height="130">
+            <circle cx="65" cy="65" r="${R}" stroke="#F1ECE1" stroke-width="10" fill="none"/>
+            <circle cx="65" cy="65" r="${R}" stroke="#9A2B2B" stroke-width="10" fill="none"
+              stroke-dasharray="${C}" stroke-dashoffset="${off}" stroke-linecap="round"/>
+          </svg>
+          <div class="num"><div class="val tabular">${total}</div><div class="lbl">/ ${MAXTOTAL}점</div></div>
+        </div>
+        <div class="kdm-candname">${escapeHtml(cand.name)}</div>
+        ${d.saved ? `<div class="kdm-savedbadge">✓ 저장됨</div>` : `<div class="kdm-draftbadge">아직 저장되지 않음</div>`}
+        ${GOOGLE_FORM_CONFIG.enabled ? `<div class="kdm-syncbadge">구글폼 자동저장 연동됨</div>` : ``}
+      </div>
+
+      <div class="kdm-refsbox">
+        <div class="kdm-refs-toggle" id="kdm-refs-toggle">
+          <span>📄 후보자 추천 사유 보기</span><span>${refsOpen?'▲':'▼'}</span>
+        </div>
+        ${refsOpen ? `<div class="kdm-refs-body">
+          ${hasAnyRef ? CATS.map(c=>`
+            <div class="kdm-refs-item"><div class="lbl">${c.name}</div>
+              <div class="txt">${refs[c.key] ? escapeHtml(refs[c.key]) : '등록된 내용이 없습니다.'}</div></div>
+          `).join('') + (refs.summary ? `<div class="kdm-refs-item"><div class="lbl">종합 추천의견</div><div class="txt">${escapeHtml(refs.summary)}</div></div>` : '')
+          : `<div class="kdm-refs-empty">아직 등록된 추천서 내용이 없습니다.</div>`}
+          <div class="kdm-refs-note">※ 추천인·후보자의 성명 및 연락처는 블라인드 심의 원칙에 따라 표시하지 않습니다.</div>
+        </div>` : ''}
+      </div>
+
+      <div id="kdm-cats"></div>
+      <div class="kdm-savebar"><button class="kdm-btn" id="kdm-save-btn">평가 저장</button></div>
+    `;
+
+    document.getElementById('kdm-refs-toggle').addEventListener('click', ()=>{
+      state.refsOpen[cand.id] = !refsOpen; render();
+    });
+
+    const catsEl = document.getElementById('kdm-cats');
+    function drawCats(){
+      catsEl.innerHTML = CATS.map(c=>{
+        const v = Number(d[c.key])||0; const p = Math.round((v/c.max)*100);
+        return `
+        <div class="kdm-cat">
+          <div class="kdm-cat-top"><div class="kdm-cat-name">${c.name}</div><div class="kdm-cat-max">${v} / ${c.max}점</div></div>
+          <div class="kdm-cat-desc">${c.desc}</div>
+          <div class="kdm-cat-grades">${gradeLine(c.max)}</div>
+          <div class="kdm-cat-controls">
+            <button class="kdm-stepbtn" data-act="minus" data-key="${c.key}">−</button>
+            <input class="kdm-cat-num" inputmode="numeric" data-key="${c.key}" value="${v}" />
+            <button class="kdm-stepbtn" data-act="plus" data-key="${c.key}" data-max="${c.max}">＋</button>
+          </div>
+          <div class="kdm-fillbar"><div class="fill" style="width:${p}%"></div></div>
+        </div>`;
+      }).join('');
+      catsEl.querySelectorAll('.kdm-stepbtn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const key = btn.dataset.key;
+          const max = Number(btn.dataset.max) || CATS.find(c=>c.key===key).max;
+          let v = Number(d[key])||0; v += btn.dataset.act==='plus'?1:-1;
+          v = Math.max(0, Math.min(max, v)); d[key]=v; d.saved=false;
+          drawCats(); updateRing();
+        });
+      });
+      catsEl.querySelectorAll('.kdm-cat-num').forEach(inp=>{
+        inp.addEventListener('change', ()=>{
+          const key = inp.dataset.key; const max = CATS.find(c=>c.key===key).max;
+          let v = parseInt(inp.value,10); if(isNaN(v)) v=0;
+          v = Math.max(0, Math.min(max, v)); d[key]=v; d.saved=false;
+          drawCats(); updateRing();
+        });
+      });
+    }
+    function updateRing(){
+      const total = CATS.reduce((s,c)=>s+(Number(d[c.key])||0),0);
+      const pct = Math.round((total/MAXTOTAL)*100); const off = C*(1-pct/100);
+      body.querySelector('.kdm-ring circle:nth-child(2)').setAttribute('stroke-dashoffset', off);
+      body.querySelector('.kdm-ring .val').textContent = total;
+      const badge = body.querySelector('.kdm-savedbadge, .kdm-draftbadge');
+      if(badge){ badge.className='kdm-draftbadge'; badge.textContent='아직 저장되지 않음'; }
+    }
+    drawCats();
+    document.querySelectorAll('.kdm-chip').forEach(chip=>{
+      chip.addEventListener('click', async ()=>{
+        state.currentId = chip.dataset.id;
+        if(!state.draft[state.currentId]){
+          const saved = await loadMyEval(state.currentId);
+          state.draft[state.currentId] = saved ? {...saved, saved:true} : {a:0,b:0,c:0,d:0,note:'',saved:false};
+        }
+        render();
+      });
+    });
+    document.getElementById('kdm-save-btn').addEventListener('click', async ()=>{
+      const total = CATS.reduce((s,c)=>s+(Number(d[c.key])||0),0);
+      const payload = {a:d.a||0,b:d.b||0,c:d.c||0,d:d.d||0,total,judgeName:state.judgeName,updatedAt:Date.now()};
+      const ok = await saveMyEval(cand.id, payload);
+      if(ok){
+        d.saved=true;
+        submitToGoogleForm(cand, d, total);
+        showToast(GOOGLE_FORM_CONFIG.enabled ? '평가가 저장되고 구글폼에 전송되었습니다.' : '평가가 저장되었습니다.');
+        render();
+      } else { showToast('저장에 실패했습니다. 다시 시도해주세요.'); }
+    });
+  }
+
+  function renderStatusView(body){
+    if(state.candidates.length===0){ body.innerHTML = `<div class="kdm-empty">등록된 후보자가 없습니다.</div>`; return; }
+    const rows = state.candidates.map(c=>{
+      const d = state.draft[c.id]; const scored = d && d.saved;
+      return `<div class="kdm-statusrow" data-id="${c.id}">
+        <div><div class="kdm-statusname">${escapeHtml(c.name)}</div><div class="kdm-statusmeta">${scored?'평가 완료':'미평가'}</div></div>
+        <div class="kdm-statusscore ${scored?'':'empty'}">${scored ? d.total+' 점' : '입력 필요'}</div>
+      </div>`;
+    }).join('');
+    const doneCount = state.candidates.filter(c=>state.draft[c.id]&&state.draft[c.id].saved).length;
+    body.innerHTML = `<div class="kdm-section-title">내 심사 진행 현황 (${doneCount}/${state.candidates.length})</div>${rows}`;
+    body.querySelectorAll('.kdm-statusrow').forEach(r=> r.addEventListener('click', ()=>{ state.currentId=r.dataset.id; state.view='score'; render(); }));
+  }
+
+  function renderAggView(body){
+    if(state.candidates.length===0){ body.innerHTML = `<div class="kdm-empty">등록된 후보자가 없습니다.</div>`; return; }
+
+    // 이 웹앱은 각 위원의 기기(브라우저)에만 점수를 저장합니다(외부 배포 시 서버가 없기 때문).
+    // 따라서 여러 위원의 점수를 한 화면에서 실시간 집계할 수는 없고, 구글폼이 모이는
+    // 구글 시트가 "전체 위원 결과"의 실제 원본이 됩니다. 아래는 이 기기의 제출 현황이며,
+    // 하단 링크로 시트의 종합 결과를 확인하도록 안내합니다.
+    const rows = state.candidates.map(c=>{
+      const d = state.draft[c.id];
+      return { name:c.name, total: (d&&d.saved) ? d.total : null };
+    });
+    const doneCount = rows.filter(r=>r.total!==null).length;
+
+    const sheetLink = GOOGLE_FORM_CONFIG.resultsSheetUrl
+      ? `<a href="${GOOGLE_FORM_CONFIG.resultsSheetUrl}" target="_blank" rel="noopener" class="kdm-btn" style="display:block;text-align:center;text-decoration:none;">📊 구글 시트에서 전체 위원 결과 보기</a>`
+      : `<p class="kdm-hint">전체 위원 종합 결과는 구글폼 응답이 모이는 구글 시트에서 확인하세요. (관리자: 코드 상단 GOOGLE_FORM_CONFIG.resultsSheetUrl에 시트 링크를 넣으면 이 화면에 바로가기 버튼이 생깁니다.)</p>`;
+
+    body.innerHTML = `
+      <div class="kdm-section-title">전체 위원 종합 결과</div>
+      ${sheetLink}
+      <div class="kdm-section-title">이 기기의 제출 현황 (${doneCount}/${rows.length})</div>
+      ${rows.map(r=>`<div class="kdm-aggcard">
+        <div class="kdm-aggtop"><div class="kdm-aggname">${escapeHtml(r.name)}</div></div>
+        <div class="kdm-aggmeta"><div>내 점수&nbsp; <b>${r.total!==null? r.total : '-'}</b></div></div>
+      </div>`).join('')}
+      <p class="kdm-hint">※ 이 화면은 이 기기(브라우저)에 저장된 내 평가만 보여줍니다. 다른 위원의 점수는 포함되지 않으며, 전체 순위·평균은 구글 시트 데이터를 기준으로 산정해 주세요.</p>`;
+  }
+
+  function renderCriteriaModal(){
+    const backdrop = document.createElement('div'); backdrop.className='kdm-modal-backdrop';
+    backdrop.innerHTML = `<div class="kdm-modal">
+      <button class="kdm-modal-close" id="kdm-crit-close">✕</button>
+      <h3>심사 배점기준</h3>
+      <table class="kdm-critable"><thead><tr><th>항목</th><th>배점</th><th>세부 기준</th><th>등급 구간</th></tr></thead>
+      <tbody>${CATS.map(c=>`<tr><td>${c.name}</td><td>${c.max}점</td><td>${c.desc}</td><td>${gradeBands(c.max).map(g=>`${g.label} ${g.range}`).join('<br/>')}</td></tr>`).join('')}</tbody></table>
+      <p class="kdm-hint">
+        · 총점 ${MAXTOTAL}점 만점입니다.<br/>
+        · '추천서'의 "특히 두드러진 강점" 체크는 참고 정성 지표로만 활용하며 별도 가산점은 없습니다(운영위원회 의결 시 조정 가능).<br/>
+        · 동점자 발생 시 ① 창작활동 점수 → ② 협회기여도 점수 → ③ 운영위원회 재논의 순으로 처리하는 것을 기본안으로 제안합니다.
+      </p>
+    </div>`;
+    document.body.appendChild(backdrop);
+    document.getElementById('kdm-crit-close').addEventListener('click', ()=>{ backdrop.remove(); state.modal=null; render(); });
+  }
+
+  function renderSettingsModal(){
+    const backdrop = document.createElement('div'); backdrop.className='kdm-modal-backdrop';
+    backdrop.innerHTML = `<div class="kdm-modal">
+      <button class="kdm-modal-close" id="kdm-modal-close">✕</button>
+      <h3>설정</h3>
+
+      <div class="kdm-section-title" style="margin-top:0;">후보자 명단</div>
+      <div id="kdm-cand-list"></div>
+      <p class="kdm-hint">후보자 등록·추천서 입력은 관리자만 할 수 있습니다.</p>
+      <button class="kdm-btn outline small" id="kdm-admin-btn" style="margin-top:10px;">
+        ${state.adminUnlocked ? '관리자 화면 열기' : '🔒 관리자 코드 입력'}
+      </button>
+
+      <div class="kdm-section-title">자동 저장 연동</div>
+      <p class="kdm-hint" style="margin-top:0;">
+        구글폼 자동 저장:
+        <span class="kdm-badge ${GOOGLE_FORM_CONFIG.enabled?'on':'off'}">${GOOGLE_FORM_CONFIG.enabled?'연동됨':'미설정'}</span><br/>
+        평가를 저장하면 이 기기의 데이터는 항상 앱 내부(전체집계)에 저장되며, 구글폼이 연동된 경우 동일 내용이 폼에도 함께 전송됩니다.
+      </p>
+
+      <div class="kdm-section-title">내 정보</div>
+      <p class="kdm-hint" style="margin-top:0;">현재 로그인: <b>${escapeHtml(state.judgeName)}</b></p>
+      <button class="kdm-btn outline" id="kdm-logout-btn">다른 이름으로 다시 시작</button>
+      <button class="kdm-btn ghost" id="kdm-reset-btn">내 평가 전체 초기화</button>
+    </div>`;
+    document.body.appendChild(backdrop);
+
+    const listEl = document.getElementById('kdm-cand-list');
+    listEl.innerHTML = state.candidates.length===0
+      ? `<p class="kdm-hint" style="margin:4px 0 10px;">등록된 후보자가 없습니다.</p>`
+      : state.candidates.map(c=>`<div class="kdm-candrow"><div class="nm">${escapeHtml(c.name)}</div></div>`).join('');
+
+    document.getElementById('kdm-modal-close').addEventListener('click', ()=>{ backdrop.remove(); state.modal=null; render(); });
+    document.getElementById('kdm-admin-btn').addEventListener('click', ()=>{
+      if(state.adminUnlocked){ backdrop.remove(); state.modal='admin'; render(); return; }
+      const code = window.prompt('관리자 코드를 입력하세요');
+      if(code===null) return;
+      if(code===ADMIN_CODE){ state.adminUnlocked=true; backdrop.remove(); state.modal='admin'; render(); }
+      else showToast('코드가 올바르지 않습니다.');
+    });
+    document.getElementById('kdm-logout-btn').addEventListener('click', async ()=>{
+      await safeDelete('kdm:my_judge_name', false);
+      state = {...state, view:'login', judgeName:null, judgeSlug:null, draft:{}, modal:null};
+      backdrop.remove(); render();
+    });
+    document.getElementById('kdm-reset-btn').addEventListener('click', async ()=>{
+      if(!confirm('내가 저장한 모든 평가를 삭제합니다. 계속할까요?')) return;
+      for(const c of state.candidates){ await safeDelete(evalKey(state.judgeSlug, c.id), true); }
+      state.draft = {};
+      showToast('내 평가가 초기화되었습니다.');
+      backdrop.remove(); state.modal=null; render();
+    });
+  }
+
+  function renderAdminModal(){
+    const editing = state.adminEditingId ? state.candidates.find(c=>c.id===state.adminEditingId) : null;
+    const refs = (editing && editing.refs) || {};
+    const backdrop = document.createElement('div'); backdrop.className='kdm-modal-backdrop';
+    backdrop.innerHTML = `<div class="kdm-modal">
+      <button class="kdm-modal-close" id="kdm-admin-close">✕</button>
+      <h3>관리자 · 후보자 / 추천서 등록</h3>
+      <p class="kdm-hint" style="margin-top:0;">
+        접수 마감 후 추천서 내용을 항목별로 옮겨 입력하세요. <b>추천인·후보자의 성명, 연락처는 이 화면 어디에도 입력하지 않습니다</b>
+        (블라인드 심의 원칙). 후보자명만 아래 별도 입력란에 입력합니다.
+      </p>
+
+      <div class="kdm-section-title" style="margin-top:6px;">${editing? '후보자 수정' : '새 후보자 등록'}</div>
+      <div class="kdm-formfield"><label>후보자명 (심사위원에게 표시됨)</label>
+        <input class="kdm-input" id="kdm-adm-name" value="${editing?escapeHtml(editing.name):''}" placeholder="예: 홍길동" /></div>
+      ${CATS.map(c=>`<div class="kdm-formfield"><label>${c.name} (${c.max}점) 추천 사유</label>
+        <textarea class="kdm-textarea" id="kdm-adm-${c.key}" placeholder="추천서 해당 항목 내용을 붙여넣으세요">${escapeHtml(refs[c.key]||'')}</textarea></div>`).join('')}
+      <div class="kdm-formfield"><label>종합 추천의견</label>
+        <textarea class="kdm-textarea" id="kdm-adm-summary" placeholder="종합 추천의견">${escapeHtml(refs.summary||'')}</textarea></div>
+
+      <button class="kdm-btn" id="kdm-adm-save">${editing? '수정 저장' : '후보자 등록'}</button>
+      ${editing? `<button class="kdm-btn ghost" id="kdm-adm-cancel">새 후보자 등록으로 전환</button>` : ''}
+
+      <div class="kdm-section-title">등록된 후보자</div>
+      <div id="kdm-adm-list"></div>
+    </div>`;
+    document.body.appendChild(backdrop);
+
+    function drawList(){
+      const el = document.getElementById('kdm-adm-list');
+      el.innerHTML = state.candidates.length===0 ? `<p class="kdm-hint">아직 없습니다.</p>` :
+        state.candidates.map(c=>`<div class="kdm-candrow">
+          <div class="nm">${escapeHtml(c.name)} ${c.refs && (c.refs.a||c.refs.summary) ? '<span class="kdm-badge on">추천서 입력됨</span>' : '<span class="kdm-badge off">미입력</span>'}</div>
+          <button class="kdm-editbtn" data-id="${c.id}">✎</button>
+          <button class="kdm-delbtn" data-id="${c.id}">✕</button>
+        </div>`).join('');
+      el.querySelectorAll('.kdm-editbtn').forEach(b=> b.addEventListener('click', ()=>{ state.adminEditingId=b.dataset.id; backdrop.remove(); state.modal='admin'; render(); }));
+      el.querySelectorAll('.kdm-delbtn').forEach(b=> b.addEventListener('click', async ()=>{
+        if(!confirm('이 후보자를 삭제할까요? (저장된 점수는 남아있을 수 있습니다)')) return;
+        state.candidates = state.candidates.filter(x=>x.id!==b.dataset.id);
+        await saveCandidates(state.candidates);
+        if(state.adminEditingId===b.dataset.id) state.adminEditingId=null;
+        drawList();
+      }));
+    }
+    drawList();
+
+    document.getElementById('kdm-admin-close').addEventListener('click', ()=>{ backdrop.remove(); state.modal=null; render(); });
+    if(editing){
+      document.getElementById('kdm-adm-cancel').addEventListener('click', ()=>{ state.adminEditingId=null; backdrop.remove(); state.modal='admin'; render(); });
+    }
+    document.getElementById('kdm-adm-save').addEventListener('click', async ()=>{
+      const name = document.getElementById('kdm-adm-name').value.trim();
+      if(!name){ showToast('후보자명을 입력하세요.'); return; }
+      const newRefs = {};
+      CATS.forEach(c=>{ newRefs[c.key] = document.getElementById(`kdm-adm-${c.key}`).value.trim(); });
+      newRefs.summary = document.getElementById('kdm-adm-summary').value.trim();
+
+      if(editing){
+        editing.name = name; editing.refs = newRefs;
+      } else {
+        const id = 'c'+Date.now()+Math.floor(Math.random()*1000);
+        state.candidates.push({id, name, refs:newRefs});
+      }
+      await saveCandidates(state.candidates);
+      state.adminEditingId = null;
+      showToast('저장되었습니다.');
+      backdrop.remove(); state.modal='admin'; render();
+    });
+  }
+
+  async function bootAfterLogin(){
+    state.view='loading'; render();
+    state.candidates = await loadCandidates();
+    for(const c of state.candidates){ const saved = await loadMyEval(c.id); if(saved) state.draft[c.id] = {...saved, saved:true}; }
+    state.view='score'; render();
+  }
+
+  async function boot(){
+    const savedName = await safeGet('kdm:my_judge_name', false);
+    if(savedName){ state.judgeName=savedName; state.judgeSlug=slugify(savedName); await bootAfterLogin(); }
+    else { state.view='login'; render(); }
+  }
+  boot();
+})();
+</script>
