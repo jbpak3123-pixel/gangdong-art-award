@@ -415,6 +415,18 @@
     return state.draft[id];
   }
 
+  // 후보자별 평가 상태: 'done'(입력완료) | 'progress'(평가중) | 'todo'(입력 필요)
+  function candidateStatus(id){
+    const d = state.draft[id];
+    if(!d) return 'todo';
+    if(d.saved) return 'done';
+    const total = CATS.reduce((s,c)=>s+(Number(d[c.key])||0),0);
+    return total > 0 ? 'progress' : 'todo';
+  }
+  function statusLabel(status){
+    return status==='done' ? '입력완료' : status==='progress' ? '평가중' : '입력 필요';
+  }
+
   function renderScoreView(body){
     if(state.candidates.length===0){
       body.innerHTML = `<div class="kdm-empty">등록된 후보자가 없습니다.<br/>후보자 접수 마감 후 관리자가 설정(⚙)에서 등록합니다.</div>`;
@@ -539,7 +551,10 @@
       submitToGoogleForm(cand, d, total);
       const handled = ok || GOOGLE_FORM_CONFIG.enabled;
       if(handled){
-        d.saved = ok; // 상태 표시용: 실제 이 기기 저장 성공 여부만 반영
+        // 이 기기에 실제로 저장됐는지와 무관하게, 구글폼으로라도 제출이 시도됐다면
+        // 사용자 입장에서는 '이 후보자 평가를 완료'한 것으로 취급합니다.
+        // (localStorage가 막힌 기기에서도 제출현황/전체집계가 정확히 표시되도록 하기 위함)
+        d.saved = true;
         const idx = state.candidates.findIndex(c=>c.id===cand.id);
         const next = state.candidates[idx+1] || null;
         state._pendingNextId = next ? next.id : null;
@@ -553,14 +568,24 @@
   function renderStatusView(body){
     if(state.candidates.length===0){ body.innerHTML = `<div class="kdm-empty">등록된 후보자가 없습니다.</div>`; return; }
     const rows = state.candidates.map(c=>{
-      const d = state.draft[c.id]; const scored = d && d.saved;
-      return `<div class="kdm-statusrow" data-id="${c.id}">
-        <div><div class="kdm-statusname">${escapeHtml(c.name)}</div><div class="kdm-statusmeta">${scored?'평가 완료':'미평가'}</div></div>
-        <div class="kdm-statusscore ${scored?'':'empty'}">${scored ? d.total+' 점' : '입력 필요'}</div>
+      const status = candidateStatus(c.id);
+      const d = state.draft[c.id];
+      const currentTotal = d ? CATS.reduce((s,cat)=>s+(Number(d[cat.key])||0),0) : 0;
+      return { id:c.id, name:c.name, status, total: d ? d.total : null, currentTotal };
+    });
+    const doneCount = rows.filter(r=>r.status==='done').length;
+    const rowsHtml = rows.map(r=>{
+      const scoreHtml = r.status==='done'
+        ? `<div class="kdm-statusscore">${r.total} 점</div>`
+        : r.status==='progress'
+          ? `<div class="kdm-statusscore" style="color:var(--gold);font-size:13px;font-weight:600;">${r.currentTotal} 점 (진행중)</div>`
+          : `<div class="kdm-statusscore empty">입력 필요</div>`;
+      return `<div class="kdm-statusrow" data-id="${r.id}">
+        <div><div class="kdm-statusname">${escapeHtml(r.name)}</div><div class="kdm-statusmeta">${statusLabel(r.status)}</div></div>
+        ${scoreHtml}
       </div>`;
     }).join('');
-    const doneCount = state.candidates.filter(c=>state.draft[c.id]&&state.draft[c.id].saved).length;
-    body.innerHTML = `<div class="kdm-section-title">내 심사 진행 현황 (${doneCount}/${state.candidates.length})</div>${rows}`;
+    body.innerHTML = `<div class="kdm-section-title">내 심사 진행 현황 (${doneCount}/${state.candidates.length})</div>${rowsHtml}`;
     body.querySelectorAll('.kdm-statusrow').forEach(r=> r.addEventListener('click', ()=>{ state.currentId=r.dataset.id; state.view='score'; render(); }));
   }
 
@@ -572,10 +597,12 @@
     // 구글 시트가 "전체 위원 결과"의 실제 원본이 됩니다. 아래는 이 기기의 제출 현황이며,
     // 하단 링크로 시트의 종합 결과를 확인하도록 안내합니다.
     const rows = state.candidates.map(c=>{
+      const status = candidateStatus(c.id);
       const d = state.draft[c.id];
-      return { name:c.name, total: (d&&d.saved) ? d.total : null };
+      const currentTotal = d ? CATS.reduce((s,cat)=>s+(Number(d[cat.key])||0),0) : 0;
+      return { name:c.name, status, total: d ? d.total : null, currentTotal };
     });
-    const doneCount = rows.filter(r=>r.total!==null).length;
+    const doneCount = rows.filter(r=>r.status==='done').length;
 
     const sheetLink = GOOGLE_FORM_CONFIG.resultsSheetUrl
       ? `<a href="${GOOGLE_FORM_CONFIG.resultsSheetUrl}" target="_blank" rel="noopener" class="kdm-btn" style="display:block;text-align:center;text-decoration:none;">📊 구글 시트에서 전체 위원 결과 보기</a>`
@@ -587,7 +614,7 @@
       <div class="kdm-section-title">이 기기의 제출 현황 (${doneCount}/${rows.length})</div>
       ${rows.map(r=>`<div class="kdm-aggcard">
         <div class="kdm-aggtop"><div class="kdm-aggname">${escapeHtml(r.name)}</div></div>
-        <div class="kdm-aggmeta"><div>내 점수&nbsp; <b>${r.total!==null? r.total : '-'}</b></div></div>
+        <div class="kdm-aggmeta"><div>${statusLabel(r.status)}&nbsp; <b>${r.status==='done' ? r.total : (r.status==='progress' ? r.currentTotal+' (진행중)' : '-')}</b></div></div>
       </div>`).join('')}
       <p class="kdm-hint">※ 이 화면은 이 기기(브라우저)에 저장된 내 평가만 보여줍니다. 다른 위원의 점수는 포함되지 않으며, 전체 순위·평균은 구글 시트 데이터를 기준으로 산정해 주세요.</p>`;
   }
