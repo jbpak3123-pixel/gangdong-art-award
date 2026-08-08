@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
-<title>강동미술인상 심사평가</title>
+<title>강동미술인상 후보자 평가</title>
 <meta name="description" content="강동미술인상 후보자 심사위원 평가표">
-<meta property="og:title" content="강동미술인상 심사평가">
+<meta property="og:title" content="강동미술인상 후보자 평가">
 <meta property="og:description" content="배점기준에 따라 후보자를 채점하는 심사위원용 평가표입니다.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23FAF7F1' stroke='%239A2B2B' stroke-width='6'/%3E%3Ctext x='50' y='62' font-size='40' text-anchor='middle' fill='%239A2B2B'%3E美%3C/text%3E%3C/svg%3E">
@@ -195,6 +195,82 @@
   const ADMIN_CODE = 'gdmi2026'; // 관리자(개발자) 코드 — 필요 시 이 값을 바꾸세요.
 
   /* =========================================================================
+     심사위원 접근 통제
+     ---------------------------------------------------------------------
+     ⚠ 중요: 이 앱은 서버가 없는 정적 웹페이지입니다. 아래 명단·차단 로직은
+     클라이언트(브라우저) 안에서만 동작하는 "예의상의 안내"이며, 페이지 소스를
+     열어보거나 개발자도구로 조작하면 우회할 수 있는 수준의 통제입니다.
+     내부 위원회 운영을 위한 실수 방지·안내 목적으로 이해해 주세요.
+     진짜 명의 도용 방지는 JUDGE_TOKENS 개인화 링크 방식을 함께 사용해야
+     의미가 있습니다(아래 설명 참고).
+     ========================================================================= */
+  const JUDGE_WHITELIST = ["변혜숙","박희정","오영숙","신학분","김순례","박은경","김선희","김단","신진","복현순","이승은","이승희","안영희","임월매","박수현","전애","박혜숙","김민주","이인경","이현주"];
+  // 프로그램 관리자: 화이트리스트·제외명단·중복평가 확인 등 모든 접근 통제를 건너뛰고
+  // 언제나 로그인할 수 있습니다(수정·테스트 목적). 심사위원 명단과는 별개입니다.
+  const DEV_BYPASS_NAMES = ["박장배"];
+  const RECOMMENDER_BLOCK = ["소정란","안선애"];
+  const CANDIDATE_BLOCK = ["조원춘","허필주","이도경"];
+
+  // 개인화 링크용 토큰(예: ?j=j08). 관리자가 각 위원에게 "본인 전용 링크"를
+  // 개별적으로(단체방 아님) 전달하면, 이름을 직접 입력하지 않아도 되므로
+  // 타인 이름을 대신 입력하는 방식의 도용을 원천 차단할 수 있습니다.
+  const JUDGE_TOKENS = {};
+  JUDGE_WHITELIST.forEach((name, i)=>{ JUDGE_TOKENS['j'+String(i+1).padStart(2,'0')] = name; });
+
+  function normalizeName(s){ return (s||'').trim().replace(/\s+/g,''); }
+
+  // 접근 판정 결과: {ok:true} 또는 {ok:false, kind:'recommender'|'candidate'|'notlisted', message}
+  function checkNameAccess(rawName){
+    const name = normalizeName(rawName);
+    if(RECOMMENDER_BLOCK.some(n=>normalizeName(n)===name)){
+      return {ok:false, kind:'recommender', message:'입력하신 해당 이름은 후보자를 추천하신 분이기 때문에 후보자 평가에 참여할 수 없습니다.'};
+    }
+    if(CANDIDATE_BLOCK.some(n=>normalizeName(n)===name)){
+      return {ok:false, kind:'candidate', message:'입력하신 해당 이름은 후보자로 추천된 분이기 때문에 후보자 평가에 참여할 수 없습니다.'};
+    }
+    if(!JUDGE_WHITELIST.some(n=>normalizeName(n)===name)){
+      return {ok:false, kind:'notlisted', message:'등록된 심사위원 명단에서 확인되지 않는 이름입니다. 정확한 성명을 입력해 주세요.'};
+    }
+    return {ok:true};
+  }
+
+  // 이 기기(브라우저)에 남아있는 "이미 완료" 기록 — 6번 요구사항으로 매 평가 종료 후
+  // 지워지는 개인 점수와 별도로, 이 완료 플래그만은 남겨서 같은 기기로 같은 이름이
+  // 다시 들어오는 것을 막습니다(기기를 바꾸면 이 로컬 플래그만으로는 못 막으므로,
+  // 아래 구글시트 원격 확인과 함께 사용합니다).
+  function localDoneKey(slug){ return `kdm:completed:${slug}`; }
+
+  function extractSheetId(url){
+    const m = url && url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return m ? m[1] : null;
+  }
+  // 구글시트(응답 결과)를 gviz 공개 조회 API로 읽어, 이 이름이 이미 전체 후보자
+  // 평가를 마쳤는지 원격으로 확인합니다. 시트가 "링크가 있는 모든 사용자-뷰어"로
+  // 공유되어 있어야 동작하며, 실패 시(비공개 시트, 네트워크 문제 등) 조용히 건너뛰고
+  // 로컬 플래그 체크만으로 대체합니다 — 즉 100% 보장되는 방식은 아닙니다.
+  async function fetchRemoteJudgeCandidateCounts(){
+    const sheetId = extractSheetId(GOOGLE_FORM_CONFIG.resultsSheetUrl);
+    if(!sheetId) return null;
+    try{
+      const res = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`);
+      const text = await res.text();
+      const jsonStr = text.slice(text.indexOf('{'), text.lastIndexOf('}')+1);
+      const data = JSON.parse(jsonStr);
+      const rows = (data.table && data.table.rows) || [];
+      const map = {};
+      rows.forEach(r=>{
+        const cells = r.c || [];
+        const judge = cells[1] && cells[1].v!=null ? normalizeName(String(cells[1].v)) : '';
+        const cand = cells[2] && cells[2].v!=null ? String(cells[2].v).trim() : '';
+        if(!judge) return;
+        if(!map[judge]) map[judge] = new Set();
+        if(cand) map[judge].add(cand);
+      });
+      return map;
+    }catch(e){ return null; }
+  }
+
+  /* =========================================================================
      접수 마감된 추천서 시드 데이터 (a~f후보)
      - 추천인·후보자 성명·연락처는 원본에서부터 제외하고 옮겨 적었습니다(블라인드).
      - d후보는 자필 기재 항목이 적어 협회기여도/종합의견만 있고 나머지는 빈 값입니다.
@@ -295,6 +371,7 @@
     modal:null, adminUnlocked:false, adminEditingId:null,
     refsOpen:{}, aggData:null,
     confirmOverlay:null, _pendingNextId:null, _confirmTimer:null,
+    blockedMessage:null, completionSnapshot:null,
   };
 
   function slugify(name){ return encodeURIComponent(name.trim()).replace(/%/g,'_'); }
@@ -364,7 +441,19 @@
   function render(){
     if(state.view==='loading'){ root.innerHTML = `<div class="kdm-wrap"><div class="kdm-spinner"></div></div>`; return; }
     if(state.view==='login'){ renderLogin(); return; }
+    if(state.view==='blocked'){ renderBlocked(); return; }
+    if(state.view==='complete'){ renderCompleteView(); return; }
     renderShell();
+  }
+
+  function renderBlocked(){
+    root.innerHTML = `
+      <div class="kdm-wrap kdm-login">
+        <div class="kdm-seal" style="border-color:var(--seal);color:var(--seal);">종료</div>
+        <h2 style="color:var(--seal);">참여할 수 없습니다</h2>
+        <p class="desc">${escapeHtml(state.blockedMessage||'')}</p>
+        <p class="kdm-hint" style="text-align:center;">문의사항이 있으시면 강동미술협회 사무국으로 연락해 주세요.</p>
+      </div>`;
   }
 
   function renderLogin(){
@@ -375,19 +464,62 @@
         <p class="desc">배점기준에 따라 후보자를 채점합니다.<br/>성명을 입력하고 시작하세요.</p>
         <div class="kdm-field"><label>심사위원 성명</label>
           <input class="kdm-input" id="kdm-name-input" placeholder="예: 김강동" /></div>
+        <p id="kdm-login-err" style="color:var(--seal);font-size:12px;margin-top:8px;display:none;"></p>
         <button class="kdm-btn" id="kdm-start-btn">심사 시작하기</button>
         <p class="kdm-hint" style="text-align:center;">입력한 평가는 이 기기와 구글폼(연동 시)에 저장됩니다.</p>
       </div>`;
     const input = document.getElementById('kdm-name-input');
     const btn = document.getElementById('kdm-start-btn');
+    const errEl = document.getElementById('kdm-login-err');
     const start = async ()=>{
       const v = input.value.trim(); if(!v) return;
-      state.judgeName=v; state.judgeSlug=slugify(v);
-      await safeSet('kdm:my_judge_name', v, false);
-      await bootAfterLogin();
+      errEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = '확인 중...';
+      await attemptLogin(v, (msg)=>{
+        errEl.textContent = msg; errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = '심사 시작하기';
+      });
     };
     btn.addEventListener('click', start);
     input.addEventListener('keydown', e=>{ if(e.key==='Enter') start(); });
+  }
+
+  // 이름 검증(명단/제외/중복) → 통과 시 로그인 진행. 실패 시 onInlineError가 있으면
+  // 로그인 화면에 인라인 메시지로, 없으면(토큰 자동입장 등) 전체화면 차단으로 표시합니다.
+  async function attemptLogin(name, onInlineError){
+    const slug = slugify(name);
+    const isBypass = DEV_BYPASS_NAMES.some(n=>normalizeName(n)===normalizeName(name));
+
+    if(!isBypass){
+      const access = checkNameAccess(name);
+      if(!access.ok){
+        if(onInlineError){ onInlineError(access.message); return; }
+        state.blockedMessage = access.message; state.view = 'blocked'; render(); return;
+      }
+      if(safeGet(localDoneKey(slug))){
+        const msg = '입력하신 해당 이름은 후보자 평가를 이미 마친것으로 확인되기 때문에 더이상 후보자 평가에 참여할 수 없습니다.';
+        if(onInlineError){ onInlineError(msg); return; }
+        state.blockedMessage = msg; state.view = 'blocked'; render(); return;
+      }
+    }
+
+    state.view = 'loading'; render();
+    const candidates = await loadCandidates();
+
+    if(!isBypass){
+      const remoteMap = await fetchRemoteJudgeCandidateCounts();
+      const normalized = normalizeName(name);
+      if(remoteMap && remoteMap[normalized] && candidates.length>0 && remoteMap[normalized].size >= candidates.length){
+        const msg = '입력하신 해당 이름은 후보자 평가를 이미 마친것으로 확인되기 때문에 더이상 후보자 평가에 참여할 수 없습니다.';
+        safeSet(localDoneKey(slug), String(Date.now())); // 로컬에도 완료 플래그를 남겨 다음엔 원격조회 없이 즉시 차단
+        state.blockedMessage = msg; state.view = 'blocked'; render(); return;
+      }
+    }
+
+    state.candidates = candidates;
+    state.judgeName = name; state.judgeSlug = slug;
+    safeSet('kdm:my_judge_name', name);
+    await bootAfterLogin();
   }
 
   function renderShell(){
@@ -426,7 +558,6 @@
     if(state.view==='score') renderScoreView(body);
     else if(state.view==='status') renderStatusView(body);
     else if(state.view==='agg') renderAggView(body);
-    else if(state.view==='complete') renderCompleteView(body);
 
     if(state.modal==='settings') renderSettingsModal();
     if(state.modal==='criteria') renderCriteriaModal();
@@ -639,9 +770,9 @@
     });
     const doneCount = rows.filter(r=>r.status==='done').length;
 
-    const sheetLink = GOOGLE_FORM_CONFIG.resultsSheetUrl
-      ? `<a href="${GOOGLE_FORM_CONFIG.resultsSheetUrl}" target="_blank" rel="noopener" class="kdm-btn" style="display:block;text-align:center;text-decoration:none;">📊 구글 시트에서 전체 위원 결과 보기</a>`
-      : `<p class="kdm-hint">전체 위원 종합 결과는 구글폼 응답이 모이는 구글 시트에서 확인하세요. (관리자: 코드 상단 GOOGLE_FORM_CONFIG.resultsSheetUrl에 시트 링크를 넣으면 이 화면에 바로가기 버튼이 생깁니다.)</p>`;
+    const sheetLink = state.adminUnlocked && GOOGLE_FORM_CONFIG.resultsSheetUrl
+      ? `<a href="${GOOGLE_FORM_CONFIG.resultsSheetUrl}" target="_blank" rel="noopener" class="kdm-btn" style="display:block;text-align:center;text-decoration:none;">📊 구글 시트에서 전체 위원 결과 보기 (관리자)</a>`
+      : `<p class="kdm-hint">전체 위원 종합 결과는 구글폼 응답이 모이는 구글 시트에서 관리자가 확인합니다.</p>`;
 
     body.innerHTML = `
       <div class="kdm-section-title">전체 위원 종합 결과</div>
@@ -668,12 +799,30 @@
     const wasLast = state.confirmOverlay.isLast;
     state.confirmOverlay = null;
     if(wasLast){
+      // 화면에 보여줄 요약은 초기화 전에 먼저 스냅샷으로 떠둡니다.
+      state.completionSnapshot = state.candidates.map(c=>{
+        const d = state.draft[c.id];
+        return { name:c.name, total: d ? d.total : null };
+      });
+      clearJudgeSessionAndMarkDone();
       state.view = 'complete';
     } else if(state._pendingNextId){
       state.currentId = state._pendingNextId;
     }
     state._pendingNextId = null;
     render();
+  }
+
+  // 6번 요구사항: 한 평가자가 전체 후보자 평가를 마치면, 다음 사람이 같은 기기를
+  // 쓰더라도 앞사람의 채점 내용을 볼 수 없도록 이 기기에 남은 개인 평가 데이터를
+  // 지웁니다. 동시에 "이미 완료" 플래그만은 남겨 같은 이름 재입장을 차단합니다.
+  function clearJudgeSessionAndMarkDone(){
+    if(state.judgeSlug){
+      safeSet(localDoneKey(state.judgeSlug), String(Date.now()));
+      for(const c of state.candidates){ safeDelete(evalKey(state.judgeSlug, c.id)); }
+    }
+    state.draft = {};
+    safeDelete('kdm:my_judge_name'); // 다음에 열었을 때 자동으로 이 사람 이름으로 재로그인되지 않도록
   }
 
   function renderConfirmOverlay(){
@@ -696,24 +845,22 @@
     document.getElementById('kdm-confirm-continue').addEventListener('click', proceedAfterConfirm);
   }
 
-  function renderCompleteView(body){
-    const rows = state.candidates.map(c=>{
-      const d = state.draft[c.id];
-      return { name:c.name, total: d ? d.total : null };
-    });
-    body.innerHTML = `
-      <div style="text-align:center;padding:36px 10px 18px;">
-        <div style="width:72px;height:72px;border-radius:50%;background:var(--seal-wash);color:var(--seal);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:34px;font-weight:700;">✓</div>
-        <h2 style="font-size:19px;margin-bottom:8px;">모든 후보자 평가를 완료하였습니다</h2>
-        <p style="font-size:13px;color:var(--ink-soft);line-height:1.7;">소중한 시간 내어 강동미술인상 심사에 참여해 주셔서<br/>진심으로 감사드립니다.</p>
-      </div>
-      <div class="kdm-section-title">내가 매긴 점수</div>
-      ${rows.map(r=>`<div class="kdm-statusrow">
-        <div class="kdm-statusname">${escapeHtml(r.name)}</div>
-        <div class="kdm-statusscore ${r.total==null?'empty':''}">${r.total!=null ? r.total+' 점' : '미평가'}</div>
-      </div>`).join('')}
-      <p class="kdm-hint">수정하고 싶은 점수가 있다면 하단 '심사' 탭에서 해당 후보자를 다시 선택해 수정 후 저장하시면 됩니다.</p>
-    `;
+  function renderCompleteView(){
+    const rows = state.completionSnapshot || [];
+    root.innerHTML = `
+      <div class="kdm-wrap">
+        <div style="text-align:center;padding:56px 10px 18px;">
+          <div style="width:72px;height:72px;border-radius:50%;background:var(--seal-wash);color:var(--seal);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:34px;font-weight:700;">✓</div>
+          <h2 style="font-size:19px;margin-bottom:8px;">모든 후보자 평가를 완료하였습니다</h2>
+          <p style="font-size:13px;color:var(--ink-soft);line-height:1.7;">소중한 시간 내어 강동미술인상 심사에 참여해 주셔서<br/>진심으로 감사드립니다.</p>
+        </div>
+        <div class="kdm-section-title">제출한 점수</div>
+        ${rows.map(r=>`<div class="kdm-statusrow" style="cursor:default;">
+          <div class="kdm-statusname">${escapeHtml(r.name)}</div>
+          <div class="kdm-statusscore ${r.total==null?'empty':''}">${r.total!=null ? r.total+' 점' : '미평가'}</div>
+        </div>`).join('')}
+        <p class="kdm-hint">개인정보 보호를 위해 이 기기에 저장된 평가 데이터는 모두 초기화되었습니다. 이 화면을 벗어나시면 다시 조회할 수 없습니다.</p>
+      </div>`;
   }
 
   function renderCriteriaModal(){
@@ -867,8 +1014,26 @@
   }
 
   async function boot(){
-    const savedName = await safeGet('kdm:my_judge_name', false);
-    if(savedName){ state.judgeName=savedName; state.judgeSlug=slugify(savedName); await bootAfterLogin(); }
+    // 개인화 링크(?j=토큰)로 접속한 경우: 이름을 직접 입력받지 않고 링크에
+    // 고정된 본인 이름으로만 로그인 시도 — 타인 이름을 타이핑해 넣는 방식의
+    // 도용을 막기 위한 장치입니다. 관리자가 위원별로 서로 다른 링크를 개별
+    // 전달해야 의미가 있습니다(단체방에 하나로 공유하면 소용없음).
+    const token = new URLSearchParams(location.search).get('j');
+    if(token && JUDGE_TOKENS[token]){
+      await attemptLogin(JUDGE_TOKENS[token], null); // 실패 시 전체화면 차단으로 표시됨
+      return;
+    }
+
+    const savedName = safeGet('kdm:my_judge_name');
+    if(savedName){
+      // 재접속 시에도 '이미 완료' 로컬 플래그만은 다시 확인합니다
+      // (정상 흐름이라면 완료 시 이 값이 지워져 있어야 하지만, 방어적으로 재확인).
+      if(safeGet(localDoneKey(slugify(savedName)))){
+        state.blockedMessage = '입력하신 해당 이름은 후보자 평가를 이미 마친것으로 확인되기 때문에 더이상 후보자 평가에 참여할 수 없습니다.';
+        state.view='blocked'; render(); return;
+      }
+      state.judgeName=savedName; state.judgeSlug=slugify(savedName); await bootAfterLogin();
+    }
     else { state.view='login'; render(); }
   }
   boot();
