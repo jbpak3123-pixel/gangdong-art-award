@@ -280,6 +280,18 @@
   function safeSet(key, value){ const r = LocalStore.set(key, value); return !!r; }
   function safeDelete(key){ LocalStore.remove(key); }
 
+  // 이 브라우저에서 localStorage가 실제로 동작하는지 진단 (회사/기관 PC의 보안 정책 등으로
+  // 쿠키·사이트 데이터가 차단되어 있으면 setItem이 예외를 던집니다)
+  function storageAvailable(){
+    try{
+      const testKey = '__kdm_test__';
+      localStorage.setItem(testKey, '1');
+      localStorage.removeItem(testKey);
+      return true;
+    }catch(e){ return false; }
+  }
+  const STORAGE_OK = storageAvailable();
+
   const CAND_KEY = 'kdm:candidates';
   async function loadCandidates(){
     const raw = await safeGet(CAND_KEY, true);
@@ -370,6 +382,10 @@
         </div>
       </div></div>
       <div class="kdm-goldline"></div>
+      ${!STORAGE_OK ? `<div class="kdm-wrap"><div style="background:#FCEFEA;border:1px solid #E9C6B8;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:11.5px;color:#7A3B22;line-height:1.6;">
+        ⚠️ 이 브라우저에서는 데이터 저장(localStorage)이 차단되어 있어 평가를 저장해도 이 기기에는 남지 않습니다.
+        ${GOOGLE_FORM_CONFIG.enabled ? '구글폼 전송은 계속 시도되니, 저장 후 반드시 구글시트에서 점수가 들어왔는지 확인해주세요.' : '가능하면 다른 브라우저(또는 시크릿 모드 해제)로 다시 시도해주세요.'}
+      </div></div>` : ''}
       <div class="kdm-wrap" id="kdm-body"></div>
       <div class="kdm-tabbar"><div class="kdm-wrap">
         <button class="kdm-tab ${state.view==='score'?'active':''}" data-tab="score"><span class="ico">✎</span>심사</button>
@@ -514,12 +530,18 @@
       const total = CATS.reduce((s,c)=>s+(Number(d[c.key])||0),0);
       const payload = {a:d.a||0,b:d.b||0,c:d.c||0,d:d.d||0,total,judgeName:state.judgeName,updatedAt:Date.now()};
       const ok = await saveMyEval(cand.id, payload);
+      // 이 기기 저장이 실패하더라도(예: 브라우저 보안 정책으로 storage 차단) 구글폼 전송은
+      // 항상 시도합니다 — 둘 중 하나라도 성공하면 점수가 어딘가에는 남아야 하기 때문입니다.
+      submitToGoogleForm(cand, d, total);
       if(ok){
         d.saved=true;
-        submitToGoogleForm(cand, d, total);
         showToast(GOOGLE_FORM_CONFIG.enabled ? '평가가 저장되고 구글폼에 전송되었습니다.' : '평가가 저장되었습니다.');
         render();
-      } else { showToast('저장에 실패했습니다. 다시 시도해주세요.'); }
+      } else if(GOOGLE_FORM_CONFIG.enabled){
+        showToast('이 기기 저장은 실패했지만 구글폼 전송은 시도했습니다. 구글시트에서 꼭 확인해주세요.');
+      } else {
+        showToast('저장에 실패했습니다. 이 브라우저의 쿠키/사이트 데이터 차단 설정을 확인해주세요.');
+      }
     });
   }
 
